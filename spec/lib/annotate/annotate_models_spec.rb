@@ -3012,6 +3012,28 @@ describe AnnotateModels do
       end
     end
 
+    it 'should not touch existing comments' do
+      write_model 'user.rb', <<~EOS
+        # frozen_string_literal: true
+
+        # This line will not be deleted
+        class User < ActiveRecord::Base
+        end
+      EOS
+
+      annotate_one_file position: :before, wrapper_close: 'End Schema'
+
+      contents = File.read(@model_file_name)
+      puts contents
+      expect(contents).to include "This line will not be deleted"
+
+      annotate_one_file position: :before, wrapper_close: 'End Schema'
+
+      contents = File.read(@model_file_name)
+      puts contents
+      expect(contents).to include "This line will not be deleted"
+    end
+
     it 'adds an empty line between magic comments and annotation (position :before)' do
       content = "class User < ActiveRecord::Base\nend\n"
       MAGIC_COMMENTS.each do |magic_comment|
