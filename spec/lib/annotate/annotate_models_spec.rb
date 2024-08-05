@@ -3021,17 +3021,33 @@ describe AnnotateModels do
         end
       EOS
 
+      expected_content = <<~EOS
+        # frozen_string_literal: true
+
+        # == Schema Info
+        #
+        # Table name: users
+        #
+        #  id   :integer          not null, primary key
+        #  name :string(50)       not null
+        #
+        # End Schema
+        #
+        # This line will not be deleted
+        class User < ActiveRecord::Base
+        end
+      EOS
+
       annotate_one_file position: :before, wrapper_close: 'End Schema'
 
       contents = File.read(@model_file_name)
-      puts contents
-      expect(contents).to include "This line will not be deleted"
+      expect(contents).to eq expected_content
 
+      # Is it idempotent?
       annotate_one_file position: :before, wrapper_close: 'End Schema'
 
       contents = File.read(@model_file_name)
-      puts contents
-      expect(contents).to include "This line will not be deleted"
+      expect(contents).to eq expected_content
     end
 
     it 'adds an empty line between magic comments and annotation (position :before)' do

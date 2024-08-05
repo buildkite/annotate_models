@@ -446,7 +446,13 @@ module AnnotateModels
 
       # Replace inline the old schema info with the new schema info
       wrapper_open = options[:wrapper_open] ? "# #{options[:wrapper_open]}\n" : ""
-      wrapper_close = options[:wrapper_close] ? "# #{options[:wrapper_close]}\n" : ""
+
+      if options[:wrapper_close]
+        wrapper_close = "# #{options[:wrapper_close]}\n"
+      else
+        wrapper_close = ""
+      end
+
       wrapped_info_block = "#{wrapper_open}#{info_block}#{wrapper_close}"
 
       old_annotation = old_content.match(annotate_pattern(options)).to_s
@@ -457,6 +463,8 @@ module AnnotateModels
         magic_comments_block = magic_comments_as_string(old_content)
         old_content.gsub!(MAGIC_COMMENT_MATCHER, '')
         old_content.sub!(annotate_pattern(options), '')
+
+        wrapped_info_block += "#\n" if old_content =~ /^#\s.+(\n|\r\n)/
 
         new_content = if %w(after bottom).include?(options[position].to_s)
                         magic_comments_block + (old_content.rstrip + "\n\n" + wrapped_info_block)
