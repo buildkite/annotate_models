@@ -474,6 +474,8 @@ module AnnotateModels
         old_content.gsub!(MAGIC_COMMENT_MATCHER, '')
         old_content.sub!(annotate_pattern(options), '')
 
+        # If the original file had its own class-level comments, add a spacer line between the
+        # annotation comments and the existing comments
         wrapped_info_block += "#\n" if old_content =~ /^#\s.+(\n|\r\n)/
 
         new_content = if %w(after bottom).include?(options[position].to_s)
