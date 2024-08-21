@@ -457,7 +457,6 @@ module AnnotateModels
       # Replace inline the old schema info with the new schema info
       wrapper_open = options[:wrapper_open] ? "# #{options[:wrapper_open]}\n" : ""
       wrapper_close = options[:wrapper_close] ? "# #{options[:wrapper_close]}\n" : ""
-
       wrapped_info_block = "#{wrapper_open}#{info_block}#{wrapper_close}"
 
       old_annotation = old_content.match(annotate_pattern(options)).to_s
