@@ -44,11 +44,21 @@ module AnnotateModels
   class << self
     def annotate_pattern(options = {})
       if options[:wrapper_close]
+        # When wrapper_close is given, match from the standard prefix to the wrapper_close
         return /^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*# (?:#{options[:wrapper_close]})(\n|\r\n)*/
       end
+
       if options[:wrapper_open]
+        # When wrapper_open is given, match from...
+        # - the wrapper_open, immediately preceding the standard prefix, or
+        # - the standard prefix from its own
+        # ... until the last empty comment line
         return /(?:^(\n|\r\n)?# (?:#{options[:wrapper_open]}).*(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*)|^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*/
       end
+
+      # FIXME: handle case of both wrapper_close and wrapper_open being given
+
+      # When no wrappers given, match from the standard prefix to the last empty comment line
       /^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*/
     end
 
