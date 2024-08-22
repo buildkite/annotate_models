@@ -43,9 +43,22 @@ module AnnotateModels
 
   class << self
     def annotate_pattern(options = {})
+      if options[:wrapper_close]
+        # When wrapper_close is given, match from the standard prefix to the wrapper_close
+        return /^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*# (?:#{options[:wrapper_close]})(\n|\r\n)*/
+      end
+
       if options[:wrapper_open]
+        # When wrapper_open is given, match from...
+        # - the wrapper_open, immediately preceding the standard prefix, or
+        # - the standard prefix from its own
+        # ... until the last empty comment line
         return /(?:^(\n|\r\n)?# (?:#{options[:wrapper_open]}).*(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*)|^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*/
       end
+
+      # FIXME: handle case of both wrapper_close and wrapper_open being given
+
+      # When no wrappers given, match from the standard prefix to the last empty comment line
       /^(\n|\r\n)?# (?:#{COMPAT_PREFIX}|#{COMPAT_PREFIX_MD}).*?(\n|\r\n)(#.*(\n|\r\n))*(\n|\r\n)*/
     end
 
@@ -454,6 +467,10 @@ module AnnotateModels
         magic_comments_block = magic_comments_as_string(old_content)
         old_content.gsub!(MAGIC_COMMENT_MATCHER, '')
         old_content.sub!(annotate_pattern(options), '')
+
+        # If the original file had its own class-level comments, add a spacer line between the
+        # annotation comments and the existing comments
+        wrapped_info_block += "#\n" if old_content =~ /^#\s.+(\n|\r\n)/
 
         new_content = if %w(after bottom).include?(options[position].to_s)
                         magic_comments_block + (old_content.rstrip + "\n\n" + wrapped_info_block)
